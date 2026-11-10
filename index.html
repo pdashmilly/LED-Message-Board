@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LED Message Board</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; }
+    input, select, button { width: 100%; padding: 10px; margin: 8px 0; font-size: 16px; }
+    #status { margin-top: 15px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>LED Message Board</h2>
+  <input type="text" id="message" placeholder="Enter message (max 30 chars)" maxlength="30">
+  <select id="color">
+    <option value="1">Red</option>
+    <option value="2">Green</option>
+    <option value="3">Blue</option>
+    <option value="4">Yellow</option>
+    <option value="5">Cyan</option>
+    <option value="6">Magenta</option>
+    <option value="7">White</option>
+  </select>
+  <button onclick="sendMessage()">Send Message</button>
+  <div id="status">Not connected</div>
+
+  <script>
+    // Replace these with your EMQX Serverless details once the broker is ready
+    const brokerUrl = "wss://y0781883.ala.us-east-1.emqxsl.com:8084/mqtt";
+    const options = {
+      username: "SuperSerious",
+      password: "SuperSerious1!",
+      clientId: "web-" + Math.random().toString(16).substr(2, 8)
+    };
+
+    const client = mqtt.connect(brokerUrl, options);
+
+    client.on("connect", () => {
+      document.getElementById("status").innerText = "Connected to MQTT";
+    });
+
+    client.on("error", (err) => {
+      document.getElementById("status").innerText = "Connection error";
+      console.error(err);
+    });
+
+    function sendMessage() {
+      const message = document.getElementById("message").value;
+      const color = document.getElementById("color").value;
+
+      if (!message) {
+        alert("Please enter a message");
+        return;
+      }
+
+      const payload = JSON.stringify({
+        message: message,
+        color: parseInt(color)
+      });
+
+      client.publish("messageboard/data", payload);
+      document.getElementById("status").innerText = "Message sent: " + message;
+    }
+  </script>
+</body>
+</html>
